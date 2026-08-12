@@ -1,0 +1,781 @@
+##
+title: "Jazz Revenue Forecasting"
+# author: "Shah Rukh Khan"
+# date: "2026-08-12"
+# output: html_document
+---
+# Jazz Revenue Forecasting: A Comparative Time Series Analysis
+
+## 1. Introduction
+
+# This project forecasts the quarterly revenue of Jazz Pakistan for 2025 using five time series models implemented in R.
+
+# The analysis uses quarterly revenue data from 2020 Q1 to 2024 Q4. Five models are applied independently:
+
+#- Autoregressive (AR)
+#- Moving Average (MA) 
+# Autoregressive Moving Average (ARMA)
+# Autoregressive Integrated Moving Average (ARIMA)
+# Seasonal Autoregressive Integrated Moving Average (SARIMA)
+
+# The forecasts from the five models are then compared to evaluate the differences in their estimated 2025 revenue.
+
+## 2. Data and Time Series
+
+#The analysis uses 20 quarterly observations covering 2020 Q1 to 2024 Q4.
+
+
+library(readxl)
+library(forecast)
+library(tseries)
+library(ggplot2)
+library(dplyr)
+
+
+
+data <- read_excel("Jazz 20 to 24.xlsx")
+
+data <- read_excel(file.choose())
+
+View(data)
+
+names(data)
+
+
+# CHUNK 2: EXTRACT REVENUE
+
+revenue <- data$`Total Revenue (PKR mn)`
+
+revenue
+
+
+# CHUNK 3: CREATE TIME SERIES
+
+
+revenue_ts <- ts(
+  revenue,
+  start = c(2020, 1),
+  frequency = 4
+)
+
+
+
+# CHUNK 4: HISTORICAL REVENUE GRAPH
+
+
+plot(
+  revenue_ts,
+  type = "o",
+  main = "Jazz Quarterly Revenue 2020-2024",
+  xlab = "Year",
+  ylab = "Revenue (PKR million)"
+)
+
+revenue_ts
+
+
+
+# CHUNK 5: STATIONARITY TEST
+
+adf.test(revenue_ts)
+
+
+revenue_diff <- diff(revenue_ts)
+
+revenue_diff
+
+adf.test(revenue_diff)
+
+
+plot(
+  revenue_diff,
+  type = "o",
+  main = "Differenced Jazz Revenue",
+  xlab = "Year",
+  ylab = "Change in Revenue"
+)
+
+
+
+# CHUNK 6: ACF AND PACF
+
+acf(
+  revenue_ts,
+  main = "ACF - Jazz Quarterly Revenue"
+)
+
+pacf(
+  revenue_ts,
+  main = "PACF - Jazz Quarterly Revenue"
+)
+
+# CHUNK 7: AR(1) MODEL
+
+ar_model <- Arima(
+  revenue_ts,
+  order = c(1, 0, 0)
+)
+
+summary(ar_model)
+
+
+order = c(1, 0, 0)
+
+
+# CHUNK 8: MODEL DIAGNOSTICS
+
+checkresiduals(ar_model)
+
+
+
+# CHUNK 9: FORECAST 2025
+
+ar_forecast <- forecast(
+  ar_model,
+  h = 4
+)
+
+ar_forecast
+
+
+
+# CHUNK 10: QUARTERLY 2025 FORECAST
+
+ar_2025 <- as.numeric(ar_forecast$mean)
+
+ar_2025
+
+
+
+# CHUNK 11: 2025 QUARTERLY FORECAST TABLE
+
+ar_2025_table <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = round(
+    ar_2025,
+    2
+  )
+)
+
+ar_2025_table
+
+# MA MODEL - CHUNK 2: MA(1)
+
+ma_model <- Arima(
+  revenue_ts,
+  order = c(0, 0, 1)
+)
+
+summary(ma_model)
+
+order = c(0, 0, 1)
+
+
+# MA MODEL - CHUNK 3: RESIDUAL DIAGNOSTICS
+
+
+checkresiduals(ma_model)
+
+# MA MODEL - CHUNK 4: FORECAST 2025
+
+ma_forecast <- forecast(
+  ma_model,
+  h = 4
+)
+
+ma_forecast
+
+
+
+# MA MODEL - CHUNK 5: QUARTERLY FORECAST VALUES
+
+ma_2025 <- as.numeric(
+  ma_forecast$mean
+)
+
+ma_2025
+
+
+
+# MA MODEL - CHUNK 6: 2025 QUARTERLY TABLE
+
+ma_2025_table <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = round(
+    ma_2025,
+    2
+  )
+)
+
+ma_2025_table
+
+
+
+# MA MODEL - CHUNK 7: TOTAL 2025 REVENUE
+
+ma_2025_total <- sum(
+  ma_2025
+)
+
+round(
+  ma_2025_total,
+  2
+)
+
+
+
+# MA MODEL - CHUNK 8: FORECAST GRAPH
+
+
+plot(
+  ma_forecast,
+  main = "Jazz Revenue Forecast for 2025 - MA Model",
+  xlab = "Year",
+  ylab = "Revenue (PKR million)"
+)
+
+
+
+# MA MODEL - CHUNK 9: QUARTERLY 2025 GRAPH
+
+barplot(
+  ma_2025,
+  names.arg = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  main = "Jazz Revenue Forecast by Quarter - 2025 MA Model",
+  xlab = "Quarter",
+  ylab = "Forecast Revenue (PKR million)"
+)
+
+
+
+# MA MODEL - CHUNK 10: PREDICTION INTERVALS
+
+
+ma_forecast$lower
+
+ma_forecast$upper
+
+
+
+# MA MODEL - CHUNK 11: FINAL RESULTS
+
+
+ma_final_results <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025",
+    "TOTAL 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = c(
+    ma_2025,
+    ma_2025_total
+  )
+)
+
+ma_final_results
+
+
+# NOW APPLYING ARMA MODEL 
+
+# ARMA MODEL - CHUNK 1: ACF AND PACF
+
+
+acf(
+  revenue_ts,
+  main = "ACF - Jazz Quarterly Revenue for ARMA Model"
+)
+
+pacf(
+  revenue_ts,
+  main = "PACF - Jazz Quarterly Revenue for ARMA Model"
+)
+
+
+
+# ARMA MODEL - CHUNK 2: ARMA(1,1)
+
+arma_model <- Arima(
+  revenue_ts,
+  order = c(1, 0, 1)
+)
+
+summary(arma_model)
+
+
+
+# ARMA MODEL - CHUNK 3: RESIDUAL DIAGNOSTICS
+
+checkresiduals(arma_model)
+
+
+
+# ARMA MODEL - CHUNK 4: FORECAST 2025
+
+arma_forecast <- forecast(
+  arma_model,
+  h = 4
+)
+
+arma_forecast
+
+
+
+# ARMA MODEL - CHUNK 5: QUARTERLY FORECAST VALUES
+
+arma_2025 <- as.numeric(
+  arma_forecast$mean
+)
+
+arma_2025
+
+# ARMA MODEL - CHUNK 6: 2025 QUARTERLY TABLE
+
+arma_2025_table <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = round(
+    arma_2025,
+    2
+  )
+)
+
+arma_2025_table
+
+
+
+# ARMA MODEL - CHUNK 7: TOTAL 2025 REVENUE
+
+arma_2025_total <- sum(
+  arma_2025
+)
+
+round(
+  arma_2025_total,
+  2
+)
+
+
+
+# ARMA MODEL - CHUNK 8: FORECAST GRAPH
+
+plot(
+  arma_forecast,
+  main = "Jazz Revenue Forecast for 2025 - ARMA Model",
+  xlab = "Year",
+  ylab = "Revenue (PKR million)"
+)
+
+
+# ARMA MODEL - CHUNK 9: QUARTERLY 2025 GRAPH
+
+barplot(
+  arma_2025,
+  names.arg = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  main = "Jazz Revenue Forecast by Quarter - 2025 ARMA Model",
+  xlab = "Quarter",
+  ylab = "Forecast Revenue (PKR million)"
+)
+
+
+
+# ARMA MODEL - CHUNK 10: PREDICTION INTERVALS
+
+
+arma_forecast$lower
+
+arma_forecast$upper
+
+
+# ============================================================
+# ARMA MODEL - CHUNK 11: FINAL RESULTS
+# ============================================================
+
+arma_final_results <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025",
+    "TOTAL 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = c(
+    arma_2025,
+    arma_2025_total
+  )
+)
+
+arma_final_results
+
+
+
+# APPLYING ARIMA MODEL 
+
+
+# ARIMA MODEL - CHUNK 1: DIFFERENCING
+
+revenue_diff <- diff(revenue_ts)
+revenue_diff
+
+
+
+plot(
+  revenue_diff,
+  type = "o",
+  main = "Differenced Jazz Quarterly Revenue",
+  xlab = "Year",
+  ylab = "Change in Revenue (PKR million)"
+)
+
+
+
+# ARIMA MODEL - CHUNK 2: STATIONARITY TEST
+
+adf.test(revenue_diff)
+
+
+
+# ARIMA MODEL - CHUNK 3: ACF AND PACF
+
+acf(
+  revenue_diff,
+  main = "ACF - Differenced Jazz Revenue"
+)
+
+pacf(
+  revenue_diff,
+  main = "PACF - Differenced Jazz Revenue"
+)
+
+
+
+# ARIMA MODEL - CHUNK 4: ARIMA(1,1,1)
+
+arima_model <- Arima(
+  revenue_ts,
+  order = c(1, 1, 1)
+)
+
+summary(arima_model)
+
+
+
+# ARIMA MODEL - CHUNK 5: RESIDUAL DIAGNOSTICS
+
+
+checkresiduals(arima_model)
+
+
+
+# ARIMA MODEL - CHUNK 6: FORECAST 2025
+
+arima_forecast <- forecast(
+  arima_model,
+  h = 4
+)
+
+arima_forecast
+
+
+
+# ARIMA MODEL - CHUNK 7: QUARTERLY FORECAST VALUES
+
+arima_2025 <- as.numeric(
+  arima_forecast$mean
+)
+
+arima_2025
+
+
+
+# ARIMA MODEL - CHUNK 8: 2025 QUARTERLY TABLE
+
+arima_2025_table <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = round(
+    arima_2025,
+    2
+  )
+)
+
+arima_2025_table
+
+
+
+# ARIMA MODEL - CHUNK 9: TOTAL 2025 REVENUE
+
+
+arima_2025_total <- sum(
+  arima_2025
+)
+
+round(
+  arima_2025_total,
+  2
+)
+
+
+
+# ARIMA MODEL - CHUNK 10: FORECAST GRAPH
+
+plot(
+  arima_forecast,
+  main = "Jazz Revenue Forecast for 2025 - ARIMA Model",
+  xlab = "Year",
+  ylab = "Revenue (PKR million)"
+)
+
+
+# ARIMA MODEL - CHUNK 11: QUARTERLY 2025 GRAPH
+
+barplot(
+  arima_2025,
+  names.arg = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  main = "Jazz Revenue Forecast by Quarter - 2025 ARIMA Model",
+  xlab = "Quarter",
+  ylab = "Forecast Revenue (PKR million)"
+)
+
+
+# ARIMA MODEL - CHUNK 12: PREDICTION INTERVAL
+
+arima_forecast$lower
+
+arima_forecast$upper
+
+
+# ARIMA MODEL - CHUNK 13: FINAL RESULTS
+
+arima_final_results <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025",
+    "TOTAL 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = c(
+    arima_2025,
+    arima_2025_total
+  )
+)
+
+arima_final_results
+
+
+# FINALLY APPLYING SARIMA MODEL
+
+
+# SARIMA MODEL - CHUNK 1: SEASONAL PATTERN
+
+plot(
+  revenue_ts,
+  type = "o",
+  main = "Jazz Quarterly Revenue 2020-2024",
+  xlab = "Year",
+  ylab = "Revenue (PKR million)"
+)
+
+monthplot(
+  revenue_ts,
+  main = "Seasonal Pattern of Jazz Quarterly Revenue"
+)
+
+frequency = 4
+
+
+# SARIMA MODEL - CHUNK 2: SEASONAL DIFFERENCING
+
+seasonal_diff <- diff(
+  revenue_ts,
+  lag = 4
+)
+
+seasonal_diff
+
+plot(
+  seasonal_diff,
+  type = "o",
+  main = "Seasonally Differenced Jazz Revenue",
+  xlab = "Year",
+  ylab = "Seasonal Change in Revenue"
+)
+
+
+# SARIMA MODEL - CHUNK 3: STATIONARITY TEST
+
+adf.test(seasonal_diff)
+
+# SARIMA MODEL - CHUNK 4: ACF AND PACF
+
+
+acf(
+  seasonal_diff,
+  main = "ACF - Seasonally Differenced Jazz Revenue"
+)
+
+pacf(
+  seasonal_diff,
+  main = "PACF - Seasonally Differenced Jazz Revenue"
+)
+
+
+# SARIMA MODEL - CHUNK 5: SARIMA(1,1,1)(1,1,1)[4]
+
+sarima_model <- Arima(
+  revenue_ts,
+  order = c(1, 1, 1),
+  seasonal = c(1, 1, 1)
+)
+
+summary(sarima_model)
+
+
+# SARIMA MODEL - CHUNK 6: RESIDUAL DIAGNOSTICS
+
+checkresiduals(sarima_model)
+
+
+# SARIMA MODEL - CHUNK 7: FORECAST 2025
+
+sarima_forecast <- forecast(
+  sarima_model,
+  h = 4
+)
+
+sarima_forecast
+
+
+# SARIMA MODEL - CHUNK 8: QUARTERLY FORECAST VALUES
+
+sarima_2025 <- as.numeric(
+  sarima_forecast$mean
+)
+
+sarima_2025
+
+
+# SARIMA MODEL - CHUNK 9: 2025 QUARTERLY TABLE
+
+sarima_2025_table <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = round(
+    sarima_2025,
+    2
+  )
+)
+
+sarima_2025_table
+
+
+# SARIMA MODEL - CHUNK 10: TOTAL 2025 REVENUE
+
+sarima_2025_total <- sum(
+  sarima_2025
+)
+
+round(
+  sarima_2025_total,
+  2
+)
+
+
+# SARIMA MODEL - CHUNK 11: FORECAST GRAPH
+
+
+plot(
+  sarima_forecast,
+  main = "Jazz Revenue Forecast for 2025 - SARIMA Model",
+  xlab = "Year",
+  ylab = "Revenue (PKR million)"
+)
+
+
+# SARIMA MODEL - CHUNK 12: QUARTERLY 2025 GRAPH
+
+barplot(
+  sarima_2025,
+  names.arg = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025"
+  ),
+  main = "Jazz Revenue Forecast by Quarter - 2025 SARIMA Model",
+  xlab = "Quarter",
+  ylab = "Forecast Revenue (PKR million)"
+)
+
+
+# SARIMA MODEL - CHUNK 13: PREDICTION INTERVALS
+
+sarima_forecast$lower
+
+sarima_forecast$upper
+
+# SARIMA MODEL - CHUNK 14: FINAL RESULTS
+
+sarima_final_results <- data.frame(
+  Quarter = c(
+    "Q1 2025",
+    "Q2 2025",
+    "Q3 2025",
+    "Q4 2025",
+    "TOTAL 2025"
+  ),
+  
+  Forecast_Revenue_PKR_million = c(
+    sarima_2025,
+    sarima_2025_total
+  )
+)
+
+sarima_final_results
